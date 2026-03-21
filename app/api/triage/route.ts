@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { supabase } from '../../../lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,27 +30,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true }); // Silently succeed for bots
     }
 
-    // ===== SUPABASE INTEGRATION (placeholder) =====
-    // Uncomment and configure when Supabase is set up:
-    //
-    // import { createClient } from '@supabase/supabase-js';
-    // const supabase = createClient(
-    //   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    //   process.env.SUPABASE_SERVICE_ROLE_KEY!
-    // );
-    // const { error } = await supabase.from('leads').insert({
-    //   full_name: data.fullName,
-    //   email: data.email,
-    //   phone: data.phone,
-    //   institution_type: data.institutionType,
-    //   service_name: data.serviceName,
-    //   legal_quality: data.legalQuality,
-    //   case_subjects: data.caseSubjects,
-    //   case_description: data.caseDescription,
-    //   accepted_confidentiality: data.acceptedConfidentiality,
-    //   created_at: data.createdAt,
-    // });
-    // if (error) throw error;
+    // ===== SUPABASE INTEGRATION =====
+    if (supabase) {
+      const { error } = await supabase.from('leads').insert({
+        full_name: data.fullName,
+        email: data.email,
+        phone: data.phone,
+        institution_type: data.institutionType,
+        service_name: data.serviceName,
+        legal_quality: data.legalQuality,
+        case_subjects: data.caseSubjects,
+        case_description: data.caseDescription,
+        accepted_confidentiality: data.acceptedConfidentiality,
+        created_at: data.createdAt,
+      });
+
+      if (error) {
+        console.error('Supabase insert error:', error);
+      } else {
+        console.log('Successfully inserted lead into Supabase');
+      }
+    } else {
+      console.log('⚠️ Supabase client not initialized. Skipping database insertion.');
+    }
 
     // ===== EMAIL NOTIFICATION (placeholder) =====
     // Uncomment and configure with Resend or SendGrid:

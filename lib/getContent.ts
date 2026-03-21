@@ -1,7 +1,24 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { supabase } from './supabase';
 
 export async function getContent() {
+  try {
+    if (supabase) {
+      const { data: dbData, error } = await supabase
+        .from('website_content')
+        .select('data')
+        .eq('id', 1)
+        .single();
+        
+      if (!error && dbData?.data) {
+        return dbData.data;
+      }
+    }
+  } catch (err) {
+    console.warn('Supabase fetch failed, falling back to local file');
+  }
+
   try {
     const filePath = path.join(process.cwd(), 'data', 'content.json');
     const data = await fs.readFile(filePath, 'utf-8');

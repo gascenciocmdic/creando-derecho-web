@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
 import { cookies } from 'next/headers';
+import { supabase } from '../../../../lib/supabase';
 
 const CONTENT_FILE_PATH = path.join(process.cwd(), 'data', 'content.json');
 
@@ -42,6 +43,22 @@ async function ensureFile() {
 }
 
 export async function GET() {
+  try {
+    if (supabase) {
+      const { data: dbData, error } = await supabase
+        .from('website_content')
+        .select('data')
+        .eq('id', 1)
+        .single();
+        
+      if (!error && dbData?.data) {
+        return NextResponse.json(dbData.data);
+      }
+    }
+  } catch (err) {
+    console.warn('Supabase GET failed, falling back to local file');
+  }
+
   await ensureFile();
   try {
     const data = await fs.readFile(CONTENT_FILE_PATH, 'utf-8');
@@ -61,6 +78,18 @@ export async function POST(request: NextRequest) {
 
   try {
     const newContent = await request.json();
+    
+    // Attempt saving to Supabase
+    if (supabase) {
+      const { error } = await supabase.from('website_content').upsert({ id: 1, data: newContent });
+      if (error) {
+        console.error('Failed to save to Supabase:', error);
+      } else {
+        console.log('Successfully saved content to Supabase');
+      }
+    }
+
+    // Always fallback/sync local file
     await ensureFile();
     await fs.writeFile(CONTENT_FILE_PATH, JSON.stringify(newContent, null, 2), 'utf-8');
     return NextResponse.json({ success: true, message: 'Content updated' });

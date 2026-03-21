@@ -49,17 +49,33 @@ export default function AdminDashboard() {
   const [expandedLead, setExpandedLead] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('hero');
   const [content, setContent] = useState<any>(null);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loadingLeads, setLoadingLeads] = useState(true);
   const [savingContent, setSavingContent] = useState(false);
   const [uploadingPdf, setUploadingPdf] = useState(false);
   const [uploadMessage, setUploadMessage] = useState('');
 
   useEffect(() => {
+    // Fetch content
     fetch('/api/admin/content')
       .then(res => res.json())
       .then(data => {
         if (!data.error) setContent(data);
       })
       .catch(console.error);
+
+    // Fetch leads
+    fetch('/api/admin/leads')
+      .then(res => res.json())
+      .then(data => {
+        if (data.leads) {
+          setLeads(data.leads.length > 0 ? data.leads : []);
+        } else if (data.error === 'Supabase no configurado') {
+          setLeads(demoLeads);
+        }
+      })
+      .catch(() => setLeads(demoLeads))
+      .finally(() => setLoadingLeads(false));
   }, []);
 
   const handleSaveContent = async (e: React.FormEvent) => {
@@ -155,7 +171,7 @@ export default function AdminDashboard() {
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <div className="bg-white rounded-xl p-6 border border-snow-dark">
-            <div className="text-3xl font-playfair font-bold text-gold">{demoLeads.length}</div>
+            <div className="text-3xl font-playfair font-bold text-gold">{leads.length}</div>
             <div className="text-xs font-montserrat text-oxford uppercase tracking-wider mt-1">Consultas Totales</div>
           </div>
           <div className="bg-white rounded-xl p-6 border border-snow-dark">
@@ -176,8 +192,13 @@ export default function AdminDashboard() {
           </div>
 
           <div className="divide-y divide-snow-dark">
-            {demoLeads.map((lead) => (
-              <div key={lead.id}>
+            {loadingLeads ? (
+              <div className="p-6 text-center text-oxford font-montserrat text-sm border-t border-snow-dark">Cargando consultas...</div>
+            ) : leads.length === 0 ? (
+              <div className="p-6 text-center text-oxford font-montserrat text-sm border-t border-snow-dark">No hay consultas registradas aún.</div>
+            ) : (
+              leads.map((lead) => (
+                <div key={lead.id}>
                 {/* Row */}
                 <button
                   onClick={() => setExpandedLead(expandedLead === lead.id ? null : lead.id)}
@@ -237,7 +258,7 @@ export default function AdminDashboard() {
                   </div>
                 )}
               </div>
-            ))}
+            )))}
           </div>
         </div>
 
