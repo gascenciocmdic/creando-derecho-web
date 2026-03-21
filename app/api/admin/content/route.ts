@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import fs from 'fs/promises';
 import path from 'path';
 import { cookies } from 'next/headers';
@@ -51,7 +52,7 @@ export async function GET() {
         .eq('id', 1)
         .single();
         
-      if (!error && dbData?.data) {
+      if (!error && dbData?.data && Object.keys(dbData.data).length > 0) {
         return NextResponse.json(dbData.data);
       }
     }
@@ -92,6 +93,10 @@ export async function POST(request: NextRequest) {
     // Always fallback/sync local file
     await ensureFile();
     await fs.writeFile(CONTENT_FILE_PATH, JSON.stringify(newContent, null, 2), 'utf-8');
+    
+    // Purge cache for the landing page so it reflects the new DB content on Vercel
+    revalidatePath('/');
+    
     return NextResponse.json({ success: true, message: 'Content updated' });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update content' }, { status: 500 });

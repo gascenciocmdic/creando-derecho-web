@@ -11,7 +11,7 @@ export async function getContent() {
         .eq('id', 1)
         .single();
         
-      if (!error && dbData?.data) {
+      if (!error && dbData?.data && Object.keys(dbData.data).length > 0) {
         return dbData.data;
       }
     }
