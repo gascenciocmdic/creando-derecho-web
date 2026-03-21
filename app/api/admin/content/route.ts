@@ -5,6 +5,9 @@ import path from 'path';
 import { cookies } from 'next/headers';
 import { supabase } from '../../../../lib/supabase';
 
+export const dynamic = 'force-dynamic';
+
+
 const CONTENT_FILE_PATH = path.join(process.cwd(), 'data', 'content.json');
 
 // Ensure data folder and file exist
