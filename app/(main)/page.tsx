@@ -4,6 +4,8 @@ import ServicesSection from '@/components/ServicesSection';
 import TrustBadges from '@/components/TrustBadges';
 import Link from 'next/link';
 
+export const revalidate = 0;
+
 export default function HomePage() {
   return (
     <>
