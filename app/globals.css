@@ -1,0 +1,238 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #1B263B;
+  --color-navy-light: #243352;
+  --color-navy-dark: #111827;
+  --color-gold: #C5A059;
+  --color-gold-light: #D4B87A;
+  --color-gold-dark: #A88640;
+  --color-oxford: #415A77;
+  --color-oxford-light: #5C7A9A;
+  --color-snow: #F8F9FA;
+  --color-snow-dark: #E9ECEF;
+  --font-playfair: "Playfair Display", serif;
+  --font-montserrat: "Montserrat", sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-montserrat);
+    color: var(--color-navy);
+    background-color: var(--color-snow);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-playfair);
+  }
+}
+
+@layer components {
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 2rem;
+    background: linear-gradient(135deg, var(--color-gold), var(--color-gold-dark));
+    color: white;
+    font-family: var(--font-montserrat);
+    font-weight: 600;
+    font-size: 0.875rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-radius: 0.375rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 4px 15px rgba(197, 160, 89, 0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(197, 160, 89, 0.4);
+    background: linear-gradient(135deg, var(--color-gold-light), var(--color-gold));
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 2rem;
+    background: transparent;
+    color: var(--color-gold);
+    font-family: var(--font-montserrat);
+    font-weight: 600;
+    font-size: 0.875rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-radius: 0.375rem;
+    border: 2px solid var(--color-gold);
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .btn-secondary:hover {
+    background: var(--color-gold);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(197, 160, 89, 0.3);
+  }
+
+  .service-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 2.5rem;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid var(--color-snow-dark);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .service-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--color-gold), var(--color-gold-light));
+    transform: scaleX(0);
+    transition: transform 0.4s ease;
+    transform-origin: left;
+  }
+
+  .service-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba(27, 38, 59, 0.12);
+    border-color: transparent;
+  }
+
+  .service-card:hover::before {
+    transform: scaleX(1);
+  }
+
+  .section-heading {
+    font-family: var(--font-playfair);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-navy);
+    position: relative;
+    display: inline-block;
+  }
+
+  .section-heading::after {
+    content: '';
+    position: absolute;
+    bottom: -0.75rem;
+    left: 0;
+    width: 4rem;
+    height: 3px;
+    background: linear-gradient(90deg, var(--color-gold), var(--color-gold-light));
+    border-radius: 2px;
+  }
+
+  .gold-icon {
+    color: var(--color-gold);
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .trust-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    background: white;
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-snow-dark);
+    transition: all 0.3s ease;
+  }
+
+  .trust-badge:hover {
+    box-shadow: 0 8px 30px rgba(27, 38, 59, 0.08);
+    border-color: var(--color-gold-light);
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--color-snow-dark);
+    border-radius: 0.5rem;
+    font-family: var(--font-montserrat);
+    font-size: 0.9375rem;
+    color: var(--color-navy);
+    background: white;
+    transition: all 0.3s ease;
+    outline: none;
+  }
+
+  .form-input:focus {
+    border-color: var(--color-gold);
+    box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.15);
+  }
+
+  .form-input::placeholder {
+    color: var(--color-oxford-light);
+  }
+
+  .form-label {
+    display: block;
+    font-family: var(--font-montserrat);
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--color-navy);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.025em;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease forwards;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.8s ease forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.6s ease forwards;
+}
