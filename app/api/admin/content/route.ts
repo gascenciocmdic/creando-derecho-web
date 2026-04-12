@@ -10,6 +10,48 @@ export const dynamic = 'force-dynamic';
 
 const CONTENT_FILE_PATH = path.join(process.cwd(), 'data', 'content.json');
 
+// Default initial content structure
+const DEFAULT_CONTENT = {
+  heroHeadline: "Defensa Legal Estratégica para el Sector Público",
+  heroSubheadline: "Soluciones jurídicas de alta complejidad para funcionarios públicos y organismos estatales en Chile. Protegemos sus derechos con excelencia y confidencialidad.",
+  aboutText1: "En Creando Derecho, somos una empresa de consultoría legal dedicada a fortalecer la gestión del sector público en Chile. Contamos con un equipo multidisciplinario experto en la defensa de funcionarios y la asesoría estratégica de organismos estatales.",
+  aboutText2: "Nuestra misión es proporcionar soluciones jurídicas de alta complejidad, garantizando el cumplimiento normativo y la protección de los derechos en el ámbito administrativo.",
+  stat1Num: "15+", stat1Label: "Años de Experiencia",
+  stat2Num: "500+", stat2Label: "Casos Exitosos",
+  stat3Num: "50+", stat3Label: "Instituciones",
+  services: [
+    { id: 'service-1', title: "Defensa en Sumarios Administrativos", description: "Foco en investigaciones sumarias, formulación de cargos y defensas por licencias médicas ante la Contraloría General de la República.", icon: 'shield' },
+    { id: 'service-2', title: "Consultoría Ley Karin", description: "Implementación de protocolos, capacitaciones y diagnósticos de cumplimiento normativo de acoso y maltrato en el ámbito laboral público.", icon: 'scale' },
+    { id: 'service-3', title: "Capacitación Estatal", description: "Charlas y talleres sobre responsabilidad administrativa y probidad para equipos municipales y del sector público.", icon: 'graduation' },
+  ],
+  contactEmail: "contacto@creandoderecho.cl",
+  contactPhone: "+56 4 4561 5390",
+  contactAddress: "Av. Apoquindo 4501, Las Condes",
+  contactWhatsApp: "+5644561539",
+  contactInstagram: "https://instagram.com/creandoderecho",
+  footerAbout: "Firma legal especializada en Alta Gestión Pública, Derecho Administrativo y Ley Karin. Defendemos a quienes sirven al país."
+};
+
+// Migration helper to convert old flat structure to new array structure
+function migrateContent(content: any) {
+  if (content && !content.services) {
+    const services = [];
+    if (content.service1Title) services.push({ id: 's1', title: content.service1Title, description: content.service1Desc || '', icon: 'shield' });
+    if (content.service2Title) services.push({ id: 's2', title: content.service2Title, description: content.service2Desc || '', icon: 'scale' });
+    if (content.service3Title) services.push({ id: 's3', title: content.service3Title, description: content.service3Desc || '', icon: 'graduation' });
+    
+    const { 
+      service1Title, service1Desc, 
+      service2Title, service2Desc, 
+      service3Title, service3Desc, 
+      ...rest 
+    } = content;
+    
+    return { ...rest, services };
+  }
+  return content;
+}
+
 // Ensure data folder and file exist
 async function ensureFile() {
   try {
@@ -17,29 +59,7 @@ async function ensureFile() {
     try {
       await fs.access(CONTENT_FILE_PATH);
     } catch {
-      // Default content
-      const defaultContent = {
-        heroHeadline: "Defensa Legal Estratégica para el Sector Público",
-        heroSubheadline: "Soluciones jurídicas de alta complejidad para funcionarios públicos y organismos estatales en Chile. Protegemos sus derechos con excelencia y confidencialidad.",
-        aboutText1: "En Creando Derecho, somos una empresa de consultoría legal dedicada a fortalecer la gestión del sector público en Chile. Contamos con un equipo multidisciplinario experto en la defensa de funcionarios y la asesoría estratégica de organismos estatales.",
-        aboutText2: "Nuestra misión es proporcionar soluciones jurídicas de alta complejidad, garantizando el cumplimiento normativo y la protección de los derechos en el ámbito administrativo.",
-        stat1Num: "15+", stat1Label: "Años de Experiencia",
-        stat2Num: "500+", stat2Label: "Casos Exitosos",
-        stat3Num: "50+", stat3Label: "Instituciones",
-        service1Title: "Defensa en Sumarios Administrativos",
-        service1Desc: "Foco en investigaciones sumarias, formulación de cargos y defensas por licencias médicas ante la Contraloría General de la República.",
-        service2Title: "Consultoría Ley Karin",
-        service2Desc: "Implementación de protocolos, capacitaciones y diagnósticos de cumplimiento normativo de acoso y maltrato en el ámbito laboral público.",
-        service3Title: "Capacitación Estatal",
-        service3Desc: "Charlas y talleres sobre responsabilidad administrativa y probidad para equipos municipales y del sector público.",
-        contactEmail: "contacto@creandoderecho.cl",
-        contactPhone: "+56 4 4561 5390",
-        contactAddress: "Av. Apoquindo 4501, Las Condes",
-        contactWhatsApp: "+5644561539",
-        contactInstagram: "https://instagram.com/creandoderecho",
-        footerAbout: "Firma legal especializada en Alta Gestión Pública, Derecho Administrativo y Ley Karin. Defendemos a quienes sirven al país."
-      };
-      await fs.writeFile(CONTENT_FILE_PATH, JSON.stringify(defaultContent, null, 2), 'utf-8');
+      await fs.writeFile(CONTENT_FILE_PATH, JSON.stringify(DEFAULT_CONTENT, null, 2), 'utf-8');
     }
   } catch (error) {
     console.error("Error setting up content file", error);
@@ -56,7 +76,7 @@ export async function GET() {
         .single();
         
       if (!error && dbData?.data && Object.keys(dbData.data).length > 0) {
-        return NextResponse.json(dbData.data);
+        return NextResponse.json(migrateContent(dbData.data));
       }
     }
   } catch (err) {
@@ -66,14 +86,13 @@ export async function GET() {
   await ensureFile();
   try {
     const data = await fs.readFile(CONTENT_FILE_PATH, 'utf-8');
-    return NextResponse.json(JSON.parse(data));
+    return NextResponse.json(migrateContent(JSON.parse(data)));
   } catch (error) {
     return NextResponse.json({ error: 'Failed to read content' }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
-  // Verify admin session manually for API routes outside middleware protection or as double-check
   const cookieStore = await cookies();
   const session = cookieStore.get('admin_session');
   if (!session) {
@@ -88,8 +107,6 @@ export async function POST(request: NextRequest) {
       const { error } = await supabase.from('website_content').upsert({ id: 1, data: newContent });
       if (error) {
         console.error('Failed to save to Supabase:', error);
-      } else {
-        console.log('Successfully saved content to Supabase');
       }
     }
 
@@ -97,7 +114,6 @@ export async function POST(request: NextRequest) {
     await ensureFile();
     await fs.writeFile(CONTENT_FILE_PATH, JSON.stringify(newContent, null, 2), 'utf-8');
     
-    // Purge cache for the landing page so it reflects the new DB content on Vercel
     revalidatePath('/');
     
     return NextResponse.json({ success: true, message: 'Content updated' });
@@ -105,3 +121,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to update content' }, { status: 500 });
   }
 }
+

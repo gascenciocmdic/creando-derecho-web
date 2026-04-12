@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import fs from 'fs/promises';
-import path from 'path';
+import { supabase } from '../../../../lib/supabase';
 
 export async function POST(request: NextRequest) {
-  // Verify admin session manually for API routes outside middleware protection or as double-check
   const cookieStore = await cookies();
   const session = cookieStore.get('admin_session');
   if (!session) {
@@ -26,11 +24,29 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Save to the public folder where it can be directly downloaded
-    const filePath = path.join(process.cwd(), 'public', 'lead-magnet.pdf');
-    await fs.writeFile(filePath, buffer);
+    if (!supabase) {
+      return NextResponse.json({ error: 'Supabase no configurado' }, { status: 500 });
+    }
 
-    return NextResponse.json({ success: true, message: 'PDF uploaded successfully' });
+    // Upload to Supabase Storage in 'pdfs' bucket
+    // Upsert: true allows overwriting the existing lead-magnet.pdf
+    const { data, error } = await supabase.storage
+      .from('pdfs')
+      .upload('lead-magnet.pdf', buffer, {
+        contentType: 'application/pdf',
+        upsert: true
+      });
+
+    if (error) {
+      console.error('Supabase Storage Error:', error);
+      return NextResponse.json({ error: `Error en Supabase: ${error.message}` }, { status: 500 });
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      message: 'PDF subido correctamente a Supabase',
+      path: data.path 
+    });
   } catch (error) {
     console.error('Error saving file:', error);
     return NextResponse.json({ error: 'Failed to save file' }, { status: 500 });

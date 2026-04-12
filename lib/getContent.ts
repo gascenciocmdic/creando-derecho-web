@@ -2,6 +2,26 @@ import fs from 'fs/promises';
 import path from 'path';
 import { supabase } from './supabase';
 
+// Migration helper to convert old flat structure to new array structure
+function migrateContent(content: any) {
+  if (content && !content.services) {
+    const services = [];
+    if (content.service1Title) services.push({ id: 's1', title: content.service1Title, description: content.service1Desc || '', icon: 'shield' });
+    if (content.service2Title) services.push({ id: 's2', title: content.service2Title, description: content.service2Desc || '', icon: 'scale' });
+    if (content.service3Title) services.push({ id: 's3', title: content.service3Title, description: content.service3Desc || '', icon: 'graduation' });
+    
+    const { 
+      service1Title, service1Desc, 
+      service2Title, service2Desc, 
+      service3Title, service3Desc, 
+      ...rest 
+    } = content;
+    
+    return { ...rest, services };
+  }
+  return content;
+}
+
 export async function getContent() {
   try {
     if (supabase) {
@@ -12,7 +32,7 @@ export async function getContent() {
         .single();
         
       if (!error && dbData?.data && Object.keys(dbData.data).length > 0) {
-        return dbData.data;
+        return migrateContent(dbData.data);
       }
     }
   } catch (err) {
@@ -22,10 +42,10 @@ export async function getContent() {
   try {
     const filePath = path.join(process.cwd(), 'data', 'content.json');
     const data = await fs.readFile(filePath, 'utf-8');
-    return JSON.parse(data);
+    return migrateContent(JSON.parse(data));
   } catch (error) {
     // Return fallback defaults if the file cannot be read
-    return {
+    return migrateContent({
       heroHeadline: "Defensa Legal Estratégica para el Sector Público",
       heroSubheadline: "Soluciones jurídicas de alta complejidad para funcionarios públicos y organismos estatales en Chile. Protegemos sus derechos con excelencia y confidencialidad.",
       aboutText1: "En Creando Derecho, somos una empresa de consultoría legal dedicada a fortalecer la gestión del sector público en Chile. Contamos con un equipo multidisciplinario experto en la defensa de funcionarios y la asesoría estratégica de organismos estatales.",
@@ -33,18 +53,18 @@ export async function getContent() {
       stat1Num: "15+", stat1Label: "Años de Experiencia",
       stat2Num: "500+", stat2Label: "Casos Exitosos",
       stat3Num: "50+", stat3Label: "Instituciones",
-      service1Title: "Defensa en Sumarios Administrativos",
-      service1Desc: "Foco en investigaciones sumarias, formulación de cargos y defensas por licencias médicas ante la Contraloría General de la República.",
-      service2Title: "Consultoría Ley Karin",
-      service2Desc: "Implementación de protocolos, capacitaciones y diagnósticos de cumplimiento normativo de acoso y maltrato en el ámbito laboral público.",
-      service3Title: "Capacitación Estatal",
-      service3Desc: "Charlas y talleres sobre responsabilidad administrativa y probidad para equipos municipales y del sector público.",
+      services: [
+        { id: 'service-1', title: "Defensa en Sumarios Administrativos", description: "Foco en investigaciones sumarias, formulación de cargos y defensas por licencias médicas ante la Contraloría General de la República.", icon: 'shield' },
+        { id: 'service-2', title: "Consultoría Ley Karin", description: "Implementación de protocolos, capacitaciones y diagnósticos de cumplimiento normativo de acoso y maltrato en el ámbito laboral público.", icon: 'scale' },
+        { id: 'service-3', title: "Capacitación Estatal", description: "Charlas y talleres sobre responsabilidad administrativa y probidad para equipos municipales y del sector público.", icon: 'graduation' },
+      ],
       contactEmail: "contacto@creandoderecho.cl",
       contactPhone: "+56 4 4561 5390",
       contactAddress: "Av. Apoquindo 4501, Las Condes",
       contactWhatsApp: "+5644561539",
       contactInstagram: "https://instagram.com/creandoderecho",
       footerAbout: "Firma legal especializada en Alta Gestión Pública, Derecho Administrativo y Ley Karin. Defendemos a quienes sirven al país."
-    };
+    });
   }
 }
+

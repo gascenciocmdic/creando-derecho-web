@@ -32,16 +32,12 @@ function ServiceIcon({ icon }: { icon: string }) {
 
 export default async function ServicesSection() {
   const content = await getContent();
-
-  const dynamicServices = [
-    { id: '1', title: content.service1Title, description: content.service1Desc, icon: 'shield' },
-    { id: '2', title: content.service2Title, description: content.service2Desc, icon: 'scale' },
-    { id: '3', title: content.service3Title, description: content.service3Desc, icon: 'graduation' },
-  ];
+  const services = content.services || [];
 
   return (
     <section id="servicios" className="py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
         {/* Header */}
         <div className="text-center mb-16">
           <span className="block text-gold font-montserrat font-semibold text-xs tracking-[0.2em] uppercase mb-3">
@@ -57,7 +53,8 @@ export default async function ServicesSection() {
 
         {/* Service Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {dynamicServices.map((service, index) => (
+          {services.map((service: any, index: number) => (
+
             <div
               key={service.id}
               className="service-card group"

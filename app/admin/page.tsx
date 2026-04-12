@@ -95,6 +95,30 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleServiceChange = (id: string, field: string, value: string) => {
+    const updatedServices = content.services.map((s: any) => 
+      s.id === id ? { ...s, [field]: value } : s
+    );
+    setContent({ ...content, services: updatedServices });
+  };
+
+  const addService = () => {
+    const newService = {
+      id: `service-${Date.now()}`,
+      title: 'Nuevo Servicio',
+      description: 'Descripción del servicio',
+      icon: 'shield'
+    };
+    setContent({ ...content, services: [...(content.services || []), newService] });
+  };
+
+  const deleteService = (id: string) => {
+    if (confirm('¿Está seguro de eliminar este servicio?')) {
+      const updatedServices = content.services.filter((s: any) => s.id !== id);
+      setContent({ ...content, services: updatedServices });
+    }
+  };
+
   const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -369,24 +393,72 @@ export default function AdminDashboard() {
 
                   {/* SERVICIOS TAB */}
                   {activeTab === 'servicios' && (
-                    <div className="space-y-6 animate-fade-in-up max-h-[400px] overflow-y-auto pr-2 pb-2">
-                      {[1, 2, 3].map(i => (
-                        <div key={i} className="bg-snow/50 p-4 rounded-xl border border-snow-dark">
-                          <label className="block text-xs font-montserrat text-navy font-bold uppercase tracking-wide mb-3">Servicio {i}</label>
+                    <div className="space-y-6 animate-fade-in-up max-h-[500px] overflow-y-auto pr-2 pb-2">
+                      <div className="flex justify-between items-center mb-4">
+                        <span className="text-xs font-montserrat text-oxford uppercase font-bold">Lista de Servicios</span>
+                        <button 
+                          type="button"
+                          onClick={addService}
+                          className="text-xs bg-gold/10 text-gold-dark px-3 py-1.5 rounded-lg font-montserrat font-bold flex items-center gap-1 hover:bg-gold/20 transition-colors"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                          </svg>
+                          Agregar Servicio
+                        </button>
+                      </div>
+
+                      {content.services && content.services.map((service: any, index: number) => (
+                        <div key={service.id} className="bg-snow/50 p-4 rounded-xl border border-snow-dark relative group">
+                          <button
+                            type="button"
+                            onClick={() => deleteService(service.id)}
+                            className="absolute top-4 right-4 p-1.5 text-oxford hover:text-red-500 transition-colors"
+                            title="Eliminar Servicio"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-xs font-montserrat text-navy font-bold uppercase tracking-wide">Servicio {index + 1}</span>
+                            <div className="flex gap-1 ml-4 sm:ml-6">
+                              {['shield', 'scale', 'graduation'].map(icon => (
+                                <button
+                                  key={icon}
+                                  type="button"
+                                  onClick={() => handleServiceChange(service.id, 'icon', icon)}
+                                  className={`p-1 rounded border transition-colors ${service.icon === icon ? 'bg-gold border-gold text-white' : 'bg-white border-snow-dark text-oxford hover:border-gold'}`}
+                                >
+                                  {icon === 'shield' && <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>}
+                                  {icon === 'scale' && <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" /></svg>}
+                                  {icon === 'graduation' && <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0v6" /></svg>}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
                           <input 
                             type="text" placeholder="Título del servicio"
-                            value={content[`service${i}Title`] || ''} 
-                            onChange={e => setContent({...content, [`service${i}Title`]: e.target.value})}
+                            value={service.title || ''} 
+                            onChange={e => handleServiceChange(service.id, 'title', e.target.value)}
                             className="w-full px-3 py-2 border border-snow-dark rounded-lg text-sm font-montserrat text-navy mb-2 focus:border-gold focus:ring-0"
                           />
                           <textarea 
                             rows={2} placeholder="Descripción del servicio"
-                            value={content[`service${i}Desc`] || ''} 
-                            onChange={e => setContent({...content, [`service${i}Desc`]: e.target.value})}
+                            value={service.description || ''} 
+                            onChange={e => handleServiceChange(service.id, 'description', e.target.value)}
                             className="w-full px-3 py-2 border border-snow-dark rounded-lg text-sm font-montserrat text-navy focus:border-gold focus:ring-0"
                           />
                         </div>
                       ))}
+
+                      {(!content.services || content.services.length === 0) && (
+                        <div className="text-center py-8 bg-snow/30 rounded-xl border border-dashed border-snow-dark">
+                          <p className="text-oxford text-sm font-montserrat">No hay servicios configurados.</p>
+                        </div>
+                      )}
                     </div>
                   )}
 
