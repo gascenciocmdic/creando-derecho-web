@@ -63,7 +63,23 @@ export async function getContent() {
       contactAddress: "Av. Apoquindo 4501, Las Condes",
       contactWhatsApp: "+5644561539",
       contactInstagram: "https://instagram.com/creandoderecho",
-      footerAbout: "Firma legal especializada en Alta Gestión Pública, Derecho Administrativo y Ley Karin. Defendemos a quienes sirven al país."
+      footerAbout: "Firma legal especializada en Alta Gestión Pública, Derecho Administrativo y Ley Karin. Defendemos a quienes sirven al país.",
+      team: [
+        {
+          id: "member-1",
+          name: "Juan Pérez",
+          role: "Socio Fundador - Especialista Administrativo",
+          image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=256&h=256",
+          description: "Abogado con más de 15 años de trayectoria en defensas disciplinarias y asesoría a municipalidades."
+        },
+        {
+          id: "member-2",
+          name: "María Fernanda Rojas",
+          role: "Asociada Senior - Experta Ley Karin",
+          image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=256&h=256",
+          description: "Especialista en derecho laboral público e implementación de protocolos de prevención de acoso y maltrato."
+        }
+      ]
     });
   }
 }

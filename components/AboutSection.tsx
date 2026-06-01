@@ -87,6 +87,59 @@ export default async function AboutSection() {
             </div>
           </div>
         </div>
+
+        {/* Dynamic Professional Team Section */}
+        {content.team && content.team.length > 0 && (
+          <div className="mt-24 border-t border-gold/20 pt-16">
+            <div className="text-center mb-16">
+              <span className="block text-gold font-montserrat font-semibold text-xs tracking-[0.2em] uppercase mb-3">
+                Expertos al Servicio del Público
+              </span>
+              <h3 className="font-playfair text-3xl sm:text-4xl font-bold text-navy">
+                Equipo Profesional
+              </h3>
+            </div>
+            
+            <div className={`grid grid-cols-1 gap-12 max-w-5xl mx-auto ${
+              content.team.length === 1 
+                ? 'max-w-md' 
+                : content.team.length === 2 
+                  ? 'md:grid-cols-2 max-w-3xl' 
+                  : 'md:grid-cols-2 lg:grid-cols-3'
+            }`}>
+              {content.team.map((member: any) => (
+                <div 
+                  key={member.id} 
+                  className="bg-white p-8 rounded-2xl border border-snow-dark shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center text-center group"
+                >
+                  {/* Title (Name and Role) */}
+                  <div className="mb-6">
+                    <h4 className="font-playfair text-xl font-bold text-navy group-hover:text-gold transition-colors duration-300">
+                      {member.name}
+                    </h4>
+                    <span className="block text-gold font-montserrat font-medium text-xs tracking-wider uppercase mt-1">
+                      {member.role}
+                    </span>
+                  </div>
+
+                  {/* Image (below the title) */}
+                  <div className="relative w-48 h-48 rounded-full overflow-hidden mb-6 border-2 border-gold/30 group-hover:border-gold transition-colors duration-300 shadow-inner">
+                    <img 
+                      src={member.image || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=256&h=256'} 
+                      alt={member.name} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                    />
+                  </div>
+
+                  {/* Description (below the image) */}
+                  <p className="text-oxford text-sm leading-relaxed max-w-sm">
+                    {member.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

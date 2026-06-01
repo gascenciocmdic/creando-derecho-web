@@ -119,6 +119,66 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleTeamMemberChange = (id: string, field: string, value: string) => {
+    const updatedTeam = content.team.map((m: any) => 
+      m.id === id ? { ...m, [field]: value } : m
+    );
+    setContent({ ...content, team: updatedTeam });
+  };
+
+  const addTeamMember = () => {
+    const newMember = {
+      id: `member-${Date.now()}`,
+      name: 'Nuevo Profesional',
+      role: 'Cargo / Especialidad',
+      image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=256&h=256',
+      description: 'Breve descripción de su trayectoria profesional.'
+    };
+    setContent({ ...content, team: [...(content.team || []), newMember] });
+  };
+
+  const deleteTeamMember = (id: string) => {
+    if (confirm('¿Está seguro de eliminar este miembro del equipo?')) {
+      const updatedTeam = content.team.filter((m: any) => m.id !== id);
+      setContent({ ...content, team: updatedTeam });
+    }
+  };
+
+  const handleTeamImageUpload = async (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Solo se permiten archivos de imagen');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('path', `team/member-${id}-${Date.now()}.jpg`);
+    formData.append('bucket', 'pdfs');
+
+    try {
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        // Direct local update
+        const updatedTeam = content.team.map((m: any) => 
+          m.id === id ? { ...m, image: data.url } : m
+        );
+        setContent({ ...content, team: updatedTeam });
+        alert('¡Fotografía subida con éxito!');
+      } else {
+        alert(data.error || 'Error al subir la imagen. Asegúrese de tener el bucket "pdfs" creado en Supabase.');
+      }
+    } catch {
+      alert('Error de conexión al subir la imagen.');
+    }
+  };
+
   const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -301,7 +361,7 @@ export default function AdminDashboard() {
               <div>
                 {/* Tabs */}
                 <div className="flex bg-snow-dark rounded-lg p-1 gap-1 mb-6 overflow-x-auto">
-                  {['hero', 'nosotros', 'servicios', 'contacto'].map(tab => (
+                  {['hero', 'nosotros', 'equipo', 'servicios', 'contacto'].map(tab => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
@@ -388,6 +448,120 @@ export default function AdminDashboard() {
                           />
                         </div>
                       </div>
+                    </div>
+                  )}
+
+                  {/* EQUIPO TAB */}
+                  {activeTab === 'equipo' && (
+                    <div className="space-y-6 animate-fade-in-up max-h-[500px] overflow-y-auto pr-2 pb-2">
+                      <div className="flex justify-between items-center mb-4">
+                        <span className="text-xs font-montserrat text-oxford uppercase font-bold">Equipo Profesional</span>
+                        <button 
+                          type="button"
+                          onClick={addTeamMember}
+                          className="text-xs bg-gold/10 text-gold-dark px-3 py-1.5 rounded-lg font-montserrat font-bold flex items-center gap-1 hover:bg-gold/20 transition-colors"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                          </svg>
+                          Agregar Integrante
+                        </button>
+                      </div>
+
+                      {content.team && content.team.map((member: any, index: number) => (
+                        <div key={member.id} className="bg-snow/50 p-4 rounded-xl border border-snow-dark relative group">
+                          <button
+                            type="button"
+                            onClick={() => deleteTeamMember(member.id)}
+                            className="absolute top-4 right-4 p-1.5 text-oxford hover:text-red-500 transition-colors"
+                            title="Eliminar Integrante"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+
+                          <div className="mb-3">
+                            <span className="text-xs font-montserrat text-navy font-bold uppercase tracking-wide">Integrante {index + 1}</span>
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-3">
+                            <div>
+                              <label className="block text-[10px] font-montserrat text-oxford uppercase tracking-wide mb-1">Nombre Completo</label>
+                              <input 
+                                type="text" placeholder="Ej: Juan Pérez"
+                                value={member.name || ''} 
+                                onChange={e => handleTeamMemberChange(member.id, 'name', e.target.value)}
+                                className="w-full px-3 py-2 border border-snow-dark rounded-lg text-sm font-montserrat text-navy focus:border-gold focus:ring-0"
+                              />
+                            </div>
+                            
+                            <div>
+                              <label className="block text-[10px] font-montserrat text-oxford uppercase tracking-wide mb-1">Cargo / Especialidad</label>
+                              <input 
+                                type="text" placeholder="Ej: Socio Fundador - Especialista Administrativo"
+                                value={member.role || ''} 
+                                onChange={e => handleTeamMemberChange(member.id, 'role', e.target.value)}
+                                className="w-full px-3 py-2 border border-snow-dark rounded-lg text-sm font-montserrat text-navy focus:border-gold focus:ring-0"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-montserrat text-oxford uppercase tracking-wide mb-1">Descripción / Bio</label>
+                              <textarea 
+                                rows={2} placeholder="Descripción de trayectoria..."
+                                value={member.description || ''} 
+                                onChange={e => handleTeamMemberChange(member.id, 'description', e.target.value)}
+                                className="w-full px-3 py-2 border border-snow-dark rounded-lg text-sm font-montserrat text-navy focus:border-gold focus:ring-0"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-montserrat text-oxford uppercase tracking-wide mb-1">Fotografía del Profesional</label>
+                              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center mt-1">
+                                {member.image && (
+                                  <img 
+                                    src={member.image} 
+                                    alt={member.name} 
+                                    className="w-12 h-12 rounded-full object-cover border border-gold/30 bg-white"
+                                  />
+                                )}
+                                <div className="flex-1 w-full">
+                                  <input 
+                                    type="text" placeholder="URL de la imagen o sube un archivo"
+                                    value={member.image || ''} 
+                                    onChange={e => handleTeamMemberChange(member.id, 'image', e.target.value)}
+                                    className="w-full px-3 py-1.5 border border-snow-dark rounded-lg text-xs font-montserrat text-navy mb-2 focus:border-gold focus:ring-0"
+                                  />
+                                  <div className="relative">
+                                    <input 
+                                      type="file" 
+                                      accept="image/*"
+                                      onChange={e => handleTeamImageUpload(member.id, e)}
+                                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    />
+                                    <button 
+                                      type="button" 
+                                      className="w-full bg-snow hover:bg-snow-dark text-navy border border-snow-dark py-1.5 px-3 rounded-lg text-xs font-montserrat font-bold flex items-center justify-center gap-1.5 transition-colors"
+                                    >
+                                      <svg className="w-3.5 h-3.5 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                      </svg>
+                                      Subir nueva fotografía
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {(!content.team || content.team.length === 0) && (
+                        <div className="text-center py-8 bg-snow/30 rounded-xl border border-dashed border-snow-dark">
+                          <p className="text-oxford text-sm font-montserrat">No hay integrantes configurados en el equipo.</p>
+                        </div>
+                      )}
                     </div>
                   )}
 
