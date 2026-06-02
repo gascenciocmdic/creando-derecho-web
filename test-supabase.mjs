@@ -16,26 +16,17 @@ async function test() {
   else console.log('Content OK:', JSON.stringify(contentData, null, 2));
 
   console.log('Testing storage buckets...');
-  const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
-  if (bucketsError) {
-    console.error('Storage List Error:', bucketsError.message);
+  const { data: uploadData, error: uploadError } = await supabase.storage
+    .from('pdfs')
+    .upload('test-connection.txt', Buffer.from('hello world'), {
+      contentType: 'text/plain',
+      upsert: true
+    });
+
+  if (uploadError) {
+    console.error('Upload Error:', uploadError);
   } else {
-    console.log('Buckets list:', buckets);
-    const pdfsBucket = buckets.find(b => b.name === 'pdfs');
-    if (!pdfsBucket) {
-      console.log('Bucket pdfs not found. Attempting to create...');
-      const { data: createData, error: createError } = await supabase.storage.createBucket('pdfs', {
-        public: true,
-        allowedMimeTypes: ['application/pdf']
-      });
-      if (createError) {
-        console.error('Create Bucket Error:', createError.message);
-      } else {
-        console.log('Bucket pdfs created successfully!', createData);
-      }
-    } else {
-      console.log('Bucket pdfs already exists!');
-    }
+    console.log('Upload success!', uploadData);
   }
 }
 
