@@ -45,6 +45,20 @@ const DEFAULT_CONTENT = {
       image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=256&h=256",
       description: "Especialista en derecho laboral público e implementación de protocolos de prevención de acoso y maltrato."
     }
+  ],
+  documents: [
+    {
+      id: "doc-1",
+      title: "Guía Práctica: Sumarios Administrativos",
+      description: "Manual paso a paso sobre los derechos y garantías del funcionario público durante una investigación sumaria.",
+      url: "https://cebohxzcuooiszruwowq.supabase.co/storage/v1/object/public/pdfs/lead-magnet.pdf"
+    },
+    {
+      id: "doc-2",
+      title: "Protocolo de Prevención - Ley Karin",
+      description: "Estructura obligatoria para la implementación de protocolos contra el acoso laboral en organismos públicos chilenos.",
+      url: "https://cebohxzcuooiszruwowq.supabase.co/storage/v1/object/public/pdfs/lead-magnet.pdf"
+    }
   ]
 };
 

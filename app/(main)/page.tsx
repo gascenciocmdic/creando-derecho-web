@@ -1,6 +1,7 @@
 import HeroSection from '@/components/HeroSection';
 import AboutSection from '@/components/AboutSection';
 import ServicesSection from '@/components/ServicesSection';
+import DocumentsSection from '@/components/DocumentsSection';
 import TrustBadges from '@/components/TrustBadges';
 import Link from 'next/link';
 
@@ -12,6 +13,7 @@ export default function HomePage() {
       <HeroSection />
       <AboutSection />
       <ServicesSection />
+      <DocumentsSection />
       <TrustBadges />
 
       {/* Final CTA Section */}

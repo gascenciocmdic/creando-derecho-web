@@ -179,6 +179,61 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDocumentChange = (id: string, field: string, value: string) => {
+    const updatedDocs = content.documents.map((d: any) => 
+      d.id === id ? { ...d, [field]: value } : d
+    );
+    setContent({ ...content, documents: updatedDocs });
+  };
+
+  const addDocumentItem = () => {
+    const newDoc = {
+      id: `doc-${Date.now()}`,
+      title: 'Nuevo Documento',
+      description: 'Breve descripción de la utilidad o contenido del documento.',
+      url: ''
+    };
+    setContent({ ...content, documents: [...(content.documents || []), newDoc] });
+  };
+
+  const deleteDocumentItem = (id: string) => {
+    if (confirm('¿Está seguro de eliminar este documento de la lista?')) {
+      const updatedDocs = content.documents.filter((d: any) => d.id !== id);
+      setContent({ ...content, documents: updatedDocs });
+    }
+  };
+
+  const handleDocumentPdfUpload = async (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      alert('Solo se permiten archivos PDF');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('path', `documents/doc-${id}-${Date.now()}.pdf`);
+    formData.append('bucket', 'pdfs');
+
+    try {
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        handleDocumentChange(id, 'url', data.url);
+        alert('¡Documento PDF subido con éxito!');
+      } else {
+        alert(data.error || 'Error al subir el PDF. Verifique la configuración del bucket "pdfs".');
+      }
+    } catch {
+      alert('Error de conexión al subir el PDF.');
+    }
+  };
+
   const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -361,7 +416,7 @@ export default function AdminDashboard() {
               <div>
                 {/* Tabs */}
                 <div className="flex bg-snow-dark rounded-lg p-1 gap-1 mb-6 overflow-x-auto">
-                  {['hero', 'nosotros', 'equipo', 'servicios', 'contacto'].map(tab => (
+                  {['hero', 'nosotros', 'equipo', 'servicios', 'documentos', 'contacto'].map(tab => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
@@ -631,6 +686,108 @@ export default function AdminDashboard() {
                       {(!content.services || content.services.length === 0) && (
                         <div className="text-center py-8 bg-snow/30 rounded-xl border border-dashed border-snow-dark">
                           <p className="text-oxford text-sm font-montserrat">No hay servicios configurados.</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* DOCUMENTOS TAB */}
+                  {activeTab === 'documentos' && (
+                    <div className="space-y-6 animate-fade-in-up max-h-[500px] overflow-y-auto pr-2 pb-2">
+                      <div className="flex justify-between items-center mb-4">
+                        <span className="text-xs font-montserrat text-oxford uppercase font-bold">Biblioteca de Documentos</span>
+                        <button 
+                          type="button"
+                          onClick={addDocumentItem}
+                          className="text-xs bg-gold/10 text-gold-dark px-3 py-1.5 rounded-lg font-montserrat font-bold flex items-center gap-1 hover:bg-gold/20 transition-colors"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                          </svg>
+                          Agregar Documento
+                        </button>
+                      </div>
+
+                      {content.documents && content.documents.map((doc: any, index: number) => (
+                        <div key={doc.id} className="bg-snow/50 p-4 rounded-xl border border-snow-dark relative group">
+                          <button
+                            type="button"
+                            onClick={() => deleteDocumentItem(doc.id)}
+                            className="absolute top-4 right-4 p-1.5 text-oxford hover:text-red-500 transition-colors"
+                            title="Eliminar Documento"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+
+                          <div className="mb-3">
+                            <span className="text-xs font-montserrat text-navy font-bold uppercase tracking-wide">Documento {index + 1}</span>
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-3">
+                            <div>
+                              <label className="block text-[10px] font-montserrat text-oxford uppercase tracking-wide mb-1">Título del Documento</label>
+                              <input 
+                                type="text" placeholder="Ej: Guía de Sumarios Administrativos"
+                                value={doc.title || ''} 
+                                onChange={e => handleDocumentChange(doc.id, 'title', e.target.value)}
+                                className="w-full px-3 py-2 border border-snow-dark rounded-lg text-sm font-montserrat text-navy focus:border-gold focus:ring-0"
+                              />
+                            </div>
+                            
+                            <div>
+                              <label className="block text-[10px] font-montserrat text-oxford uppercase tracking-wide mb-1">Descripción corta</label>
+                              <textarea 
+                                rows={2} placeholder="Explica brevemente de qué se trata..."
+                                value={doc.description || ''} 
+                                onChange={e => handleDocumentChange(doc.id, 'description', e.target.value)}
+                                className="w-full px-3 py-2 border border-snow-dark rounded-lg text-sm font-montserrat text-navy focus:border-gold focus:ring-0"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-montserrat text-oxford uppercase tracking-wide mb-1">Archivo PDF</label>
+                              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center mt-1">
+                                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center">
+                                  <svg className="w-5 h-5 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  </svg>
+                                </div>
+                                <div className="flex-1 w-full">
+                                  <input 
+                                    type="text" placeholder="URL del archivo o sube un archivo"
+                                    value={doc.url || ''} 
+                                    onChange={e => handleDocumentChange(doc.id, 'url', e.target.value)}
+                                    className="w-full px-3 py-1.5 border border-snow-dark rounded-lg text-xs font-montserrat text-navy mb-2 focus:border-gold focus:ring-0"
+                                  />
+                                  <div className="relative">
+                                    <input 
+                                      type="file" 
+                                      accept="application/pdf"
+                                      onChange={e => handleDocumentPdfUpload(doc.id, e)}
+                                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    />
+                                    <button 
+                                      type="button" 
+                                      className="w-full bg-snow hover:bg-snow-dark text-navy border border-snow-dark py-1.5 px-3 rounded-lg text-xs font-montserrat font-bold flex items-center justify-center gap-1.5 transition-colors"
+                                    >
+                                      <svg className="w-3.5 h-3.5 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                      </svg>
+                                      Subir archivo PDF
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {(!content.documents || content.documents.length === 0) && (
+                        <div className="text-center py-8 bg-snow/30 rounded-xl border border-dashed border-snow-dark">
+                          <p className="text-oxford text-sm font-montserrat">No hay documentos configurados.</p>
                         </div>
                       )}
                     </div>
