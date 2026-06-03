@@ -27,6 +27,7 @@ export default function TriagePage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const onChange = (field: keyof LeadData, value: string | string[] | boolean) => {
     setData((prev) => ({ ...prev, [field]: value }));
@@ -92,9 +93,10 @@ export default function TriagePage() {
 
   const handleSubmit = async () => {
     if (!validateStep3()) return;
+    setSubmitError(null);
 
     // Check honeypot
-    const honeypot = document.getElementById('website_url') as HTMLInputElement;
+    const honeypot = document.getElementById('honey_trap_val') as HTMLInputElement;
     if (honeypot && honeypot.value) {
       // Bot detected — silently "succeed"
       setSubmitted(true);
@@ -110,15 +112,16 @@ export default function TriagePage() {
         body: JSON.stringify({ ...data, createdAt: new Date().toISOString() }),
       });
 
+      const resData = await response.json();
+
       if (response.ok) {
         setSubmitted(true);
       } else {
-        throw new Error('Error al enviar');
+        throw new Error(resData.error || 'Error al enviar la solicitud. Por favor intente más tarde.');
       }
-    } catch {
-      // Show error but log to console in demo mode
-      console.log('Lead data (demo mode):', data);
-      setSubmitted(true);
+    } catch (err: any) {
+      console.error('Error submitting triage form:', err);
+      setSubmitError(err.message || 'Error de conexión. Por favor intente de nuevo.');
     } finally {
       setIsSubmitting(false);
     }
@@ -193,6 +196,15 @@ export default function TriagePage() {
               <StepThree data={data} onChange={onChange} errors={errors} />
             )}
           </div>
+
+          {submitError && (
+            <div className="mt-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-montserrat flex items-center gap-3">
+              <svg className="w-5 h-5 flex-shrink-0 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>{submitError}</span>
+            </div>
+          )}
 
           {/* Navigation */}
           <div className="flex items-center justify-between mt-8 pt-6 border-t border-snow-dark">

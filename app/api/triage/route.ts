@@ -47,11 +47,19 @@ export async function POST(request: NextRequest) {
 
       if (error) {
         console.error('Supabase insert error:', error);
+        return NextResponse.json(
+          { error: 'Error al guardar en la base de datos' },
+          { status: 500 }
+        );
       } else {
         console.log('Successfully inserted lead into Supabase');
       }
     } else {
-      console.log('⚠️ Supabase client not initialized. Skipping database insertion.');
+      console.warn('⚠️ Supabase client not initialized. Skipping database insertion.');
+      return NextResponse.json(
+        { error: 'Servicio de base de datos no disponible' },
+        { status: 503 }
+      );
     }
 
     // ===== EMAIL NOTIFICATION (placeholder) =====

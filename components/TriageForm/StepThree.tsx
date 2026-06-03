@@ -101,13 +101,13 @@ export default function StepThree({ data, onChange, errors }: StepThreeProps) {
 
       {/* Honeypot — invisible to users */}
       <div className="absolute -left-[9999px]" aria-hidden="true">
-        <label htmlFor="website_url">Website</label>
+        <label htmlFor="honey_trap_val">Website Check</label>
         <input
-          id="website_url"
+          id="honey_trap_val"
           type="text"
-          name="website_url"
+          name="honey_trap_val"
           tabIndex={-1}
-          autoComplete="off"
+          autoComplete="new-password"
         />
       </div>
 
