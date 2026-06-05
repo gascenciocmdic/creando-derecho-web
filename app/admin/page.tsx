@@ -578,7 +578,7 @@ export default function AdminDashboard() {
                                   <img 
                                     src={member.image} 
                                     alt={member.name} 
-                                    className="w-12 h-12 rounded-full object-cover border border-gold/30 bg-white"
+                                    className="w-12 h-12 object-cover shadow-sm"
                                   />
                                 )}
                                 <div className="flex-1 w-full">

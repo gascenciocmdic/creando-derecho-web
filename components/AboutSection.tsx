@@ -123,7 +123,7 @@ export default async function AboutSection() {
                   </div>
 
                   {/* Image (below the title) */}
-                  <div className="relative w-48 h-48 rounded-full overflow-hidden mb-6 border-2 border-gold/30 group-hover:border-gold transition-colors duration-300 shadow-inner">
+                  <div className="relative w-48 h-48 overflow-hidden mb-6 shadow-sm">
                     <img 
                       src={member.image || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=256&h=256'} 
                       alt={member.name} 
